@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.*
@@ -67,7 +68,8 @@ fun JournalScreen(
         isSearchEnabled = viewModel.isSearchEnabled.value,
         onChangeIsSearchEnabled = viewModel::onChangeOfIsSearchEnabled,
         currentExperience = currentAndPrevious.currentExperience,
-        previousExperiences = currentAndPrevious.previousExperiences
+        previousExperiences = currentAndPrevious.previousExperiences,
+        createAll = viewModel::createALotOfExperiencesAndIngestions
     )
 }
 
@@ -89,7 +91,8 @@ fun ExperiencesScreenPreview(
             isSearchEnabled = true,
             onChangeIsSearchEnabled = {},
             currentExperience = experiences.firstOrNull(),
-            previousExperiences = experiences.drop(1)
+            previousExperiences = experiences.drop(1),
+            createAll = {}
         )
     }
 }
@@ -107,6 +110,7 @@ fun JournalScreen(
     onChangeIsSearchEnabled: (Boolean) -> Unit,
     currentExperience: ExperienceWithIngestionsAndCompanions?,
     previousExperiences: List<ExperienceWithIngestionsAndCompanions>,
+    createAll: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -132,6 +136,9 @@ fun JournalScreen(
                         } else {
                             Icon(Icons.Filled.Search, contentDescription = "Search")
                         }
+                    }
+                    IconButton(onClick = createAll) {
+                        Icon(Icons.Outlined.Add, contentDescription = "Search Off")
                     }
                 }
             )

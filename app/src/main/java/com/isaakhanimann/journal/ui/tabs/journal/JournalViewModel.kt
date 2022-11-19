@@ -22,7 +22,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.isaakhanimann.journal.data.room.experiences.ExperienceRepository
+import com.isaakhanimann.journal.data.room.experiences.entities.AdaptiveColor
+import com.isaakhanimann.journal.data.room.experiences.entities.Experience
+import com.isaakhanimann.journal.data.room.experiences.entities.Ingestion
+import com.isaakhanimann.journal.data.room.experiences.entities.SubstanceCompanion
 import com.isaakhanimann.journal.data.room.experiences.relations.ExperienceWithIngestionsAndCompanions
+import com.isaakhanimann.journal.data.substances.AdministrationRoute
 import com.isaakhanimann.journal.ui.tabs.journal.addingestion.time.hourLimitToSeparateIngestions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +42,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class JournalViewModel @Inject constructor(
-    experienceRepo: ExperienceRepository
+    val experienceRepo: ExperienceRepository
 ) : ViewModel() {
 
     val isFavoriteEnabledFlow = MutableStateFlow(false)
@@ -66,6 +71,106 @@ class JournalViewModel @Inject constructor(
     fun search(newSearchText: String) {
         viewModelScope.launch {
             searchTextFlow.emit(newSearchText)
+        }
+    }
+
+    fun createALotOfExperiencesAndIngestions() {
+        viewModelScope.launch {
+            val mdma = SubstanceCompanion(
+                substanceName = "MDMA",
+                color = AdaptiveColor.BLUE
+            )
+            experienceRepo.insert(mdma)
+            val keta = SubstanceCompanion(
+                substanceName = "Ketamine",
+                color = AdaptiveColor.RED
+            )
+            experienceRepo.insert(keta)
+            val cocaine = SubstanceCompanion(
+                substanceName = "Cocaine",
+                color = AdaptiveColor.GREEN
+            )
+            experienceRepo.insert(cocaine)
+            experienceRepo.insert(mdma)
+            var currentTime = Instant.now()
+            for (i in 0..4000) {
+                val experienceId = 1000 + i
+                currentTime = currentTime.minus(1, ChronoUnit.DAYS)
+                val experience = Experience(
+                    title = "My random title $i",
+                    text = "My random text $i",
+                    creationDate = currentTime,
+                    sortDate = currentTime,
+                    isFavorite = false,
+                    id = experienceId
+                )
+                experienceRepo.insert(experience)
+                val ingestionTime1 = currentTime.plus(1, ChronoUnit.HOURS)
+                val ingestion1 = Ingestion(
+                    substanceName = "MDMA",
+                    time = ingestionTime1,
+                    creationDate = ingestionTime1,
+                    administrationRoute = AdministrationRoute.ORAL,
+                    isDoseAnEstimate = false,
+                    units = "mg",
+                    experienceId = experienceId,
+                    notes = "Some note $i",
+                    dose = 80.0
+                )
+                experienceRepo.insert(ingestion1)
+                val ingestionTime2 = currentTime.plus(2, ChronoUnit.HOURS)
+                val ingestion2 = Ingestion(
+                    substanceName = "Ketamine",
+                    time = ingestionTime2,
+                    creationDate = ingestionTime2,
+                    administrationRoute = AdministrationRoute.INSUFFLATED,
+                    isDoseAnEstimate = false,
+                    units = "mg",
+                    experienceId = experienceId,
+                    notes = "Some note $i",
+                    dose = 20.0
+                )
+                experienceRepo.insert(ingestion2)
+                val ingestionTime3 = currentTime.plus(3, ChronoUnit.HOURS)
+                val ingestion3 = Ingestion(
+                    substanceName = "Cocaine",
+                    time = ingestionTime3,
+                    creationDate = ingestionTime3,
+                    administrationRoute = AdministrationRoute.INSUFFLATED,
+                    isDoseAnEstimate = false,
+                    units = "mg",
+                    experienceId = experienceId,
+                    notes = "Some note $i",
+                    dose = 30.0
+                )
+                experienceRepo.insert(ingestion3)
+                val ingestionTime4 = currentTime.plus(4, ChronoUnit.HOURS)
+                val ingestion4 = Ingestion(
+                    substanceName = "MDMA",
+                    time = ingestionTime4,
+                    creationDate = ingestionTime4,
+                    administrationRoute = AdministrationRoute.ORAL,
+                    isDoseAnEstimate = false,
+                    units = "mg",
+                    experienceId = experienceId,
+                    notes = "Some note $i",
+                    dose = 180.0
+                )
+                experienceRepo.insert(ingestion4)
+                val ingestionTime5 = currentTime.plus(5, ChronoUnit.HOURS)
+                val ingestion5 = Ingestion(
+                    substanceName = "MDMA",
+                    time = ingestionTime5,
+                    creationDate = ingestionTime5,
+                    administrationRoute = AdministrationRoute.ORAL,
+                    isDoseAnEstimate = false,
+                    units = "mg",
+                    experienceId = experienceId,
+                    notes = "Some note $i",
+                    dose = 80.0
+                )
+                experienceRepo.insert(ingestion5)
+            }
         }
     }
 
