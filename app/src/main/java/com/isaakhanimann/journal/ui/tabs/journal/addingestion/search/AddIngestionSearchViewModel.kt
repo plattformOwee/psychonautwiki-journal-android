@@ -155,10 +155,10 @@ class AddIngestionSearchViewModel @Inject constructor(
                 ?: return emptyList()
         val substance = substanceRepo.getSubstance(substanceName)
         val isPredefinedSubstance = substance != null
-        val customSubstanceId = customSubstances.firstOrNull { it.name == substanceName }?.id
+        val customSubstance = customSubstances.firstOrNull { it.name == substanceName }
         val groupedRoute =
             ingestionsGroupedBySubstance.groupBy { it.ingestion.administrationRoute }
-        if (!isPredefinedSubstance && customSubstanceId == null) {
+        if (!isPredefinedSubstance && customSubstance == null) {
             return emptyList()
         } else {
             val suggestions = groupedRoute.flatMap { routeEntry ->
@@ -179,6 +179,15 @@ class AddIngestionSearchViewModel @Inject constructor(
                         color = color
                     )
                     results.add(pureSubstanceSuggestion)
+                }
+                if (customSubstance != null) {
+                    val customSubstanceSuggestion = getCustomSubstanceSuggestion(
+                        ingestionsForSubstanceAndRoute = ingestionsForSubstanceAndRoute,
+                        customSubstance = customSubstance,
+                        administrationRoute = administrationRoute,
+                        color = color
+                    )
+                    results.add(customSubstanceSuggestion)
                 }
                 return@flatMap results
             }
@@ -233,6 +242,34 @@ class AddIngestionSearchViewModel @Inject constructor(
         return Suggestion.PureSubstanceSuggestion(
             administrationRoute = administrationRoute,
             substance = substance,
+            adaptiveColor = color,
+            dosesAndUnit = dosesAndUnit,
+            sortInstant = ingestionsForSubstanceAndRoute.mapNotNull { it.ingestion.creationDate }
+                .maxOfOrNull { it } ?: Instant.MIN
+        )
+    }
+
+    private fun getCustomSubstanceSuggestion(
+        ingestionsForSubstanceAndRoute: List<IngestionWithCompanionAndCustomUnit>,
+        customSubstance: CustomSubstance,
+        administrationRoute: AdministrationRoute,
+        color: AdaptiveColor
+    ): Suggestion.CustomSubstanceSuggestion {
+        val dosesAndUnit =
+            ingestionsForSubstanceAndRoute.asSequence().filter { it.customUnit == null }
+                .map { it.ingestion }
+                .mapNotNull { ingestion ->
+                    val unit = ingestion.units ?: return@mapNotNull null
+                    return@mapNotNull DoseAndUnit(
+                        dose = ingestion.dose,
+                        unit = unit,
+                        isEstimate = ingestion.isDoseAnEstimate,
+                        estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation
+                    )
+                }.distinct().take(8).toList()
+        return Suggestion.CustomSubstanceSuggestion(
+            administrationRoute = administrationRoute,
+            customSubstance = customSubstance,
             adaptiveColor = color,
             dosesAndUnit = dosesAndUnit,
             sortInstant = ingestionsForSubstanceAndRoute.mapNotNull { it.ingestion.creationDate }
