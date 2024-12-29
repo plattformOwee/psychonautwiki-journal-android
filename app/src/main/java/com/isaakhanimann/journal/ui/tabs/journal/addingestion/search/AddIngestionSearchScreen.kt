@@ -96,7 +96,6 @@ fun AddIngestionSearchScreen(
         navigateToCheckSaferUse = navigateToCheckSaferUse,
         navigateToChooseRoute = navigateToChooseRoute,
         navigateToCustomDose = navigateToChooseCustomSubstanceDose,
-        navigateToCreateCustomUnit = navigateToCreateCustomUnit,
         navigateToCustomSubstanceChooseRoute = navigateToCustomSubstanceChooseRoute,
         navigateToChooseTime = navigateToChooseTime,
         navigateToDose = navigateToDose,
@@ -122,7 +121,6 @@ fun AddIngestionSearchScreen(
     navigateToChooseRoute: (substanceName: String) -> Unit,
     navigateToCheckSaferUse: (substanceName: String) -> Unit,
     navigateToDose: (substanceName: String, route: AdministrationRoute) -> Unit,
-    navigateToCreateCustomUnit: (route: AdministrationRoute, substanceName: String?, customSubstanceId: Int?) -> Unit,
     navigateToCustomDose: (customSubstanceId: Int, route: AdministrationRoute) -> Unit,
     navigateToChooseTime: (substanceName: String, route: AdministrationRoute, dose: Double?, units: String?, isEstimate: Boolean, estimatedDoseStandardDeviation: Double?, customUnitId: Int?) -> Unit,
     navigateToCustomSubstanceChooseRoute: (customSubstanceId: Int) -> Unit,
@@ -198,11 +196,10 @@ fun AddIngestionSearchScreen(
                         SectionHeader(title = "Quick logging")
                     }
                 }
-                itemsIndexed(suggestions) { index, substanceRow ->
+                itemsIndexed(suggestions) { index, suggestion ->
                     SuggestionRow(
-                        substanceRouteSuggestion = substanceRow,
+                        suggestion = suggestion,
                         navigateToDose = navigateToDose,
-                        navigateToCreateCustomUnit = navigateToCreateCustomUnit,
                         navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
                         navigateToCustomDose = navigateToCustomDose,
                         navigateToChooseTime = navigateToChooseTime
