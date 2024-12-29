@@ -92,12 +92,15 @@ data class DoseAndUnit(
 )
 
 data class CustomUnitDoseSuggestion(
-    val dose: Double,
+    val dose: Double?,
     val isEstimate: Boolean,
     val estimatedDoseStandardDeviation: Double?,
 ) {
     // e.g. 2 pills
     fun getDoseDescription(pluralizableUnit: PluralizableUnit): String {
+        if (dose == null) {
+            return "Unknown"
+        }
         val description = dose.toStringWith(pluralizableUnit = pluralizableUnit)
         return if (isEstimate) {
             if (estimatedDoseStandardDeviation != null) {
