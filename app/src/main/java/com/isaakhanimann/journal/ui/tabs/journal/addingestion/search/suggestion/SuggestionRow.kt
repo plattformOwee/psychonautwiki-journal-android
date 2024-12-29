@@ -23,10 +23,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material3.Icon
@@ -97,14 +95,12 @@ fun PureSubstanceSuggestionRow(
             .padding(top = 10.dp, bottom = 5.dp)
             .padding(horizontal = horizontalPadding)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ColorCircle(adaptiveColor = pureSubstanceSuggestion.adaptiveColor)
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = pureSubstanceSuggestion.substanceName + " " + pureSubstanceSuggestion.administrationRoute.displayText,
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(modifier = Modifier.weight(1f))
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             pureSubstanceSuggestion.dosesAndUnit.forEach { doseAndUnit ->
@@ -174,14 +170,12 @@ fun CustomUnitSuggestionRow(
             .padding(horizontal = horizontalPadding)
     ) {
         val customUnit = customUnitSuggestion.customUnit
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ColorCircle(adaptiveColor = customUnitSuggestion.adaptiveColor)
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = customUnit.substanceName + " " + customUnit.administrationRoute.displayText + ", " + customUnit.name,
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(modifier = Modifier.weight(1f))
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             customUnitSuggestion.dosesAndUnit.forEach { customUnitDose ->
@@ -226,14 +220,12 @@ fun CustomSubstanceSuggestionRow(
             .padding(top = 10.dp, bottom = 5.dp)
             .padding(horizontal = horizontalPadding)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ColorCircle(adaptiveColor = customSubstanceSuggestion.adaptiveColor)
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = customSubstanceSuggestion.customSubstance.name + " " + customSubstanceSuggestion.administrationRoute.displayText,
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(modifier = Modifier.weight(1f))
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             customSubstanceSuggestion.dosesAndUnit.forEach { doseAndUnit ->
