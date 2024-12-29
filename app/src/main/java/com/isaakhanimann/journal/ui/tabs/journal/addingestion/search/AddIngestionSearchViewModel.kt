@@ -178,7 +178,9 @@ class AddIngestionSearchViewModel @Inject constructor(
                         administrationRoute = administrationRoute,
                         color = color
                     )
-                    results.add(pureSubstanceSuggestion)
+                    if (pureSubstanceSuggestion != null) {
+                        results.add(pureSubstanceSuggestion)
+                    }
                 }
                 if (customSubstance != null) {
                     val customSubstanceSuggestion = getCustomSubstanceSuggestion(
@@ -187,7 +189,9 @@ class AddIngestionSearchViewModel @Inject constructor(
                         administrationRoute = administrationRoute,
                         color = color
                     )
-                    results.add(customSubstanceSuggestion)
+                    if (customSubstanceSuggestion != null) {
+                        results.add(customSubstanceSuggestion)
+                    }
                 }
                 return@flatMap results
             }
@@ -211,6 +215,9 @@ class AddIngestionSearchViewModel @Inject constructor(
                     estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation
                 )
             }.distinct().take(8)
+            if (dosesAndUnit.isEmpty()) {
+                return@mapNotNull null
+            }
             return@mapNotNull Suggestion.CustomUnitSuggestion(
                 customUnit = customUnit,
                 adaptiveColor = color,
@@ -226,10 +233,13 @@ class AddIngestionSearchViewModel @Inject constructor(
         substance: Substance,
         administrationRoute: AdministrationRoute,
         color: AdaptiveColor
-    ): Suggestion.PureSubstanceSuggestion {
-        val dosesAndUnit =
-            ingestionsForSubstanceAndRoute.asSequence().filter { it.customUnit == null }
-                .map { it.ingestion }
+    ): Suggestion.PureSubstanceSuggestion? {
+        val ingestionsToConsider = ingestionsForSubstanceAndRoute.asSequence().filter { it.customUnit == null }
+            .map { it.ingestion }
+        if (ingestionsToConsider.count() == 0) {
+            return null
+        }
+        val dosesAndUnit = ingestionsToConsider
                 .mapNotNull { ingestion ->
                     val unit = ingestion.units ?: return@mapNotNull null
                     return@mapNotNull DoseAndUnit(
@@ -254,10 +264,13 @@ class AddIngestionSearchViewModel @Inject constructor(
         customSubstance: CustomSubstance,
         administrationRoute: AdministrationRoute,
         color: AdaptiveColor
-    ): Suggestion.CustomSubstanceSuggestion {
-        val dosesAndUnit =
-            ingestionsForSubstanceAndRoute.asSequence().filter { it.customUnit == null }
-                .map { it.ingestion }
+    ): Suggestion.CustomSubstanceSuggestion? {
+        val ingestionsToConsider = ingestionsForSubstanceAndRoute.asSequence().filter { it.customUnit == null }
+            .map { it.ingestion }
+        if (ingestionsToConsider.count() == 0) {
+            return null
+        }
+        val dosesAndUnit = ingestionsToConsider
                 .mapNotNull { ingestion ->
                     val unit = ingestion.units ?: return@mapNotNull null
                     return@mapNotNull DoseAndUnit(
