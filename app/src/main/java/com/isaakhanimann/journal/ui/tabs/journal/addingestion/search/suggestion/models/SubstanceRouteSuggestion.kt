@@ -23,7 +23,6 @@ import com.isaakhanimann.journal.data.room.experiences.entities.CustomSubstance
 import com.isaakhanimann.journal.data.room.experiences.entities.CustomUnit
 import com.isaakhanimann.journal.data.room.experiences.entities.PluralizableUnit
 import com.isaakhanimann.journal.data.substances.AdministrationRoute
-import com.isaakhanimann.journal.data.substances.classes.Substance
 import com.isaakhanimann.journal.ui.tabs.search.substance.roa.toReadableString
 import java.time.Instant
 import kotlin.math.pow
@@ -35,13 +34,13 @@ sealed class Suggestion(open val sortInstant: Instant) {
 
     data class PureSubstanceSuggestion(
         val administrationRoute: AdministrationRoute,
-        val substance: Substance,
+        val substanceName: String,
         val adaptiveColor: AdaptiveColor,
         val dosesAndUnit: List<DoseAndUnit>,
         override val sortInstant: Instant
     ) : Suggestion(sortInstant = sortInstant) {
         override fun isInSearch(searchText: String, substanceNames: List<String>): Boolean {
-            return substanceNames.contains(substance.name)
+            return substanceNames.contains(substanceName)
         }
     }
 

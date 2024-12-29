@@ -241,7 +241,7 @@ class AddIngestionSearchViewModel @Inject constructor(
                 }.distinct().take(8).toList()
         return Suggestion.PureSubstanceSuggestion(
             administrationRoute = administrationRoute,
-            substance = substance,
+            substanceName = substance.name,
             adaptiveColor = color,
             dosesAndUnit = dosesAndUnit,
             sortInstant = ingestionsForSubstanceAndRoute.mapNotNull { it.ingestion.creationDate }

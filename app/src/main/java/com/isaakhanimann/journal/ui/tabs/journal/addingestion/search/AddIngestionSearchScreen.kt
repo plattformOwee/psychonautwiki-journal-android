@@ -72,7 +72,7 @@ import com.isaakhanimann.journal.data.room.experiences.entities.CustomSubstance
 import com.isaakhanimann.journal.data.room.experiences.entities.CustomUnit
 import com.isaakhanimann.journal.data.substances.AdministrationRoute
 import com.isaakhanimann.journal.ui.tabs.journal.addingestion.search.suggestion.SuggestionRow
-import com.isaakhanimann.journal.ui.tabs.journal.addingestion.search.suggestion.models.SubstanceRouteSuggestion
+import com.isaakhanimann.journal.ui.tabs.journal.addingestion.search.suggestion.models.Suggestion
 import com.isaakhanimann.journal.ui.tabs.search.SubstanceModel
 import com.isaakhanimann.journal.ui.theme.horizontalPadding
 
@@ -104,7 +104,7 @@ fun AddIngestionSearchScreen(
             navigateToAddCustomSubstanceScreen(searchText)
         },
         navigateToCustomUnitChooseDose = navigateToCustomUnitChooseDose,
-        substanceRouteSuggestions = viewModel.filteredSuggestions.collectAsState().value,
+        suggestions = viewModel.filteredSuggestions.collectAsState().value,
         searchText = searchText,
         onChangeSearchText = {
             viewModel.updateSearchText(it)
@@ -128,7 +128,7 @@ fun AddIngestionSearchScreen(
     navigateToCustomSubstanceChooseRoute: (customSubstanceId: Int) -> Unit,
     navigateToAddCustomSubstanceScreen: () -> Unit,
     navigateToCustomUnitChooseDose: (customUnitId: Int) -> Unit,
-    substanceRouteSuggestions: List<SubstanceRouteSuggestion>,
+    suggestions: List<Suggestion>,
     searchText: String,
     onChangeSearchText: (searchText: String) -> Unit,
     filteredSubstances: List<SubstanceModel>,
@@ -193,12 +193,12 @@ fun AddIngestionSearchScreen(
                 singleLine = true
             )
             LazyColumn {
-                if (substanceRouteSuggestions.isNotEmpty()) {
+                if (suggestions.isNotEmpty()) {
                     stickyHeader {
                         SectionHeader(title = "Quick logging")
                     }
                 }
-                itemsIndexed(substanceRouteSuggestions) { index, substanceRow ->
+                itemsIndexed(suggestions) { index, substanceRow ->
                     SuggestionRow(
                         substanceRouteSuggestion = substanceRow,
                         navigateToDose = navigateToDose,
@@ -207,7 +207,7 @@ fun AddIngestionSearchScreen(
                         navigateToCustomDose = navigateToCustomDose,
                         navigateToChooseTime = navigateToChooseTime
                     )
-                    if (index < substanceRouteSuggestions.size - 1) {
+                    if (index < suggestions.size - 1) {
                         HorizontalDivider()
                     }
                 }
