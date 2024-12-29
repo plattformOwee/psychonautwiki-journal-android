@@ -88,13 +88,29 @@ data class DoseAndUnit(
     val unit: String,
     val isEstimate: Boolean,
     val estimatedDoseStandardDeviation: Double?
-)
+) {
+    // used to check if distinct
+    val comparatorValue: String get() {
+        if (dose == null) {
+            return "U"
+        }
+        return dose.toString() + unit + isEstimate + estimatedDoseStandardDeviation
+    }
+}
 
 data class CustomUnitDoseSuggestion(
     val dose: Double?,
     val isEstimate: Boolean,
     val estimatedDoseStandardDeviation: Double?,
 ) {
+    // used to check if distinct
+    val comparatorValue: String get() {
+        if (dose == null) {
+            return "U"
+        }
+        return dose.toString() + isEstimate + estimatedDoseStandardDeviation
+    }
+
     // e.g. 2 pills
     fun getDoseDescription(pluralizableUnit: PluralizableUnit): String {
         if (dose == null) {

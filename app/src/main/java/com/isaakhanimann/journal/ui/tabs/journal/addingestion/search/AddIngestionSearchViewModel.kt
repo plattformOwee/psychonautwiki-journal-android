@@ -214,7 +214,7 @@ class AddIngestionSearchViewModel @Inject constructor(
                     isEstimate = ingestion.isDoseAnEstimate,
                     estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation
                 )
-            }.distinct().take(8)
+            }.distinctBy { it.comparatorValue }.take(8)
             if (dosesAndUnit.isEmpty()) {
                 return@mapNotNull null
             }
@@ -248,7 +248,7 @@ class AddIngestionSearchViewModel @Inject constructor(
                         isEstimate = ingestion.isDoseAnEstimate,
                         estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation
                     )
-                }.distinct().take(8).toList()
+                }.distinctBy { it.comparatorValue }.take(8).toList()
         return Suggestion.PureSubstanceSuggestion(
             administrationRoute = administrationRoute,
             substanceName = substance.name,
@@ -279,7 +279,7 @@ class AddIngestionSearchViewModel @Inject constructor(
                         isEstimate = ingestion.isDoseAnEstimate,
                         estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation
                     )
-                }.distinct().take(8).toList()
+                }.distinctBy { it.comparatorValue }.take(8).toList()
         return Suggestion.CustomSubstanceSuggestion(
             administrationRoute = administrationRoute,
             customSubstance = customSubstance,
