@@ -12,7 +12,6 @@ data class TimeRangeDrawable(
     val convolutionResultModel: ConvolutionResultModel?,
 ) {
     data class IntermediateRepresentation(
-        val color: AdaptiveColor,
         val rangeInSeconds: ClosedFloatingPointRange<Float>,
         val fullTimelineDurations: FullTimelineDurations?,
         val height: Float

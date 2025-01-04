@@ -23,9 +23,6 @@ import com.isaakhanimann.journal.data.substances.classes.roa.RoaDuration
 import com.isaakhanimann.journal.ui.tabs.journal.experience.components.DataForOneEffectLine
 import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.drawables.AxisDrawable
 import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.drawables.GroupDrawable
-import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.drawables.TimeRangeDrawable
-import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.drawables.getConvolutionResultModel
-import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.drawables.toFullTimelineDurations
 import java.time.Duration
 import java.time.Instant
 import kotlin.time.Duration.Companion.hours
@@ -40,7 +37,6 @@ class AllTimelinesModel(
     val startTime: Instant
     val widthInSeconds: Float
     val groupDrawables: List<GroupDrawable>
-    val timeRangeDrawables: List<TimeRangeDrawable>
     val axisDrawable: AxisDrawable
 
     data class RoaGroup(
@@ -56,7 +52,7 @@ class AllTimelinesModel(
         val allStartTimeCandidates = ratingTimes + ingestionTimes + noteTimes
         startTime =
             allStartTimeCandidates.reduce { acc, date -> if (acc.isBefore(date)) acc else date }
-        val roaGroups = dataForLines.filter { it.endTime == null }.groupBy { it.substanceName }
+        val roaGroups = dataForLines.groupBy { it.substanceName }
             .flatMap { substanceGroup ->
                 val linesPerSubstance = substanceGroup.value
                 return@flatMap linesPerSubstance.groupBy { it.route }.map { routeGroup ->
@@ -66,9 +62,10 @@ class AllTimelinesModel(
                         roaDuration = linesPerRoute.first().roaDuration,
                         weightedLines = linesPerRoute.map {
                             WeightedLine(
-                                it.startTime,
-                                it.horizontalWeight,
-                                it.height
+                                startTime = it.startTime,
+                                endTime = it.endTime,
+                                horizontalWeight = it.horizontalWeight,
+                                height = it.height
                             )
                         })
                 }
@@ -82,55 +79,11 @@ class AllTimelinesModel(
                 areSubstanceHeightsIndependent = areSubstanceHeightsIndependent
             )
         }
-        val intermediateRanges = dataForLines.mapNotNull {
-            if (it.endTime != null) {
-                val startInSeconds = Duration.between(startTime, it.startTime).seconds.toFloat()
-                val endInSeconds = Duration.between(startTime, it.endTime).seconds.toFloat()
-                return@mapNotNull TimeRangeDrawable.IntermediateRepresentation(
-                    color = it.color,
-                    rangeInSeconds = startInSeconds..endInSeconds,
-                    fullTimelineDurations = it.roaDuration?.toFullTimelineDurations(),
-                    height = it.height
-                )
-            } else {
-                return@mapNotNull null
-            }
-        }.sortedBy { it.rangeInSeconds.start }
-        val timeRangeDrawable = intermediateRanges.mapIndexed { index, currentRange ->
-            val intersectionCount = intermediateRanges.subList(0, index).count {
-                it.rangeInSeconds.start <= currentRange.rangeInSeconds.endInclusive && it.rangeInSeconds.endInclusive >= currentRange.rangeInSeconds.start
-            }
-            val ingestionStartInSeconds = currentRange.rangeInSeconds.start
-            val ingestionEndInSeconds = currentRange.rangeInSeconds.endInclusive
-            TimeRangeDrawable(
-                color = currentRange.color,
-                ingestionStartInSeconds = currentRange.rangeInSeconds.start,
-                ingestionEndInSeconds = currentRange.rangeInSeconds.endInclusive,
-                intersectionCountWithPreviousRanges = intersectionCount,
-                convolutionResultModel = currentRange.fullTimelineDurations?.getConvolutionResultModel(
-                    ingestionStartInSeconds = ingestionStartInSeconds,
-                    ingestionEndInSeconds = ingestionEndInSeconds,
-                    heightOfDoseAtOnePoint = currentRange.height
-                ),
-            )
-        }
-        val groupHeights = groupDrawables.map { it.nonNormalisedHeight }
-        val rangeHeights = timeRangeDrawable.mapNotNull { it.convolutionResultModel?.height }
-        val overallMaxHeight = (groupHeights + rangeHeights).maxOrNull() ?: 1f
-        timeRangeDrawable.forEach { it.convolutionResultModel?.normaliseHeight(overallMaxHeight) }
-        this.timeRangeDrawables = timeRangeDrawable
-
-        groupDrawables.forEach { it.setOverallHeight(overallMaxHeight) }
+        val overallMaxHeight = groupDrawables.maxOfOrNull { it.nonNormalisedHeight } ?: 1f
+        groupDrawables.forEach { it.normaliseHeight(overallMaxHeight) }
         this.groupDrawables = groupDrawables
-        val maxWidthOfPointInTimeIngestions: Float = groupDrawables.maxOfOrNull {
+        val maxWidthOfGroups: Float = groupDrawables.maxOfOrNull {
             it.endOfLineRelativeToStartInSeconds
-        } ?: 0f
-        val maxWidthOfTimeRangeIngestions = timeRangeDrawables.maxOfOrNull {
-            if (it.convolutionResultModel != null) {
-                it.convolutionResultModel.offsetEndXInSeconds
-            } else {
-                it.ingestionEndInSeconds
-            }
         } ?: 0f
 
         val latestRating = ratingTimes.maxOrNull()
@@ -146,8 +99,7 @@ class AllTimelinesModel(
             0f
         }
         val maxCandidates = listOf(
-            maxWidthOfPointInTimeIngestions,
-            maxWidthOfTimeRangeIngestions,
+            maxWidthOfGroups,
             maxWidthRating,
             maxWidthNote,
             2.hours.inWholeSeconds.toFloat()

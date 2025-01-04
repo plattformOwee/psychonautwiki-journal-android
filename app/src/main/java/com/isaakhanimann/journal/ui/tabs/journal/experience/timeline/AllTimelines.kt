@@ -221,15 +221,6 @@ fun AllTimelines(
                         isDarkTheme = isDarkTheme
                     )
                 }
-                model.timeRangeDrawables.forEach {
-                    drawTimeRange(
-                        timeRangeDrawable = it,
-                        canvasHeight = canvasHeightWithVerticalLine,
-                        pixelsPerSec = pixelsPerSec,
-                        isDarkTheme = isDarkTheme,
-                        density = density
-                    )
-                }
                 if (isShowingCurrentTime) {
                     drawCurrentTime(
                         startTime = model.startTime,
@@ -413,10 +404,9 @@ fun DrawScope.drawTimeRange(
     timeRangeDrawable: TimeRangeDrawable,
     canvasHeight: Float,
     pixelsPerSec: Float,
-    isDarkTheme: Boolean,
-    density: Density
+    color: Color,
+    density: Density,
 ) {
-    val color = timeRangeDrawable.color.getComposeColor(isDarkTheme)
     val startX = timeRangeDrawable.ingestionStartInSeconds * pixelsPerSec
     val endX = timeRangeDrawable.ingestionEndInSeconds * pixelsPerSec
     val minLineHeight = 12.dp.toPx()
