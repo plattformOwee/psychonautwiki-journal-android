@@ -28,6 +28,9 @@ import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.*
 import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.drawables.TimelineDrawable
 import java.time.Duration
 import java.time.Instant
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 data class FullTimelines(
     val onset: FullDurationRange,
@@ -81,7 +84,32 @@ data class FullTimelines(
     override val endOfLineRelativeToStartInSeconds: Float
 
     init {
-        val weightedRelatives = weightedLines.map {
+        val weightedLinesIncludingSplits = weightedLines.flatMap { line ->
+            if (line.endTime != null) {
+                val intervalInSeconds = Duration.between(line.startTime, line.endTime).seconds.toFloat()
+                val splitLengthInSeconds = max(min(comeup.minInSeconds/5, offset.minInSeconds/5), 10f)
+                val numSplits = max((intervalInSeconds/splitLengthInSeconds).roundToInt(), 3)
+                val splitHeight = line.height/numSplits
+                if (numSplits > 1) {
+                    val step = intervalInSeconds / (numSplits - 1)
+                    val splitStartTimes = List(numSplits) { i -> line.startTime.plusSeconds((i * step).toLong()) }
+                    splitStartTimes.map { splitStartTime ->
+                        WeightedLine(
+                            startTime = splitStartTime,
+                            endTime = null,
+                            horizontalWeight = 0.5f,
+                            height = splitHeight
+                        )
+                    }
+                } else {
+                    emptyList()
+                }
+            } else {
+                listOf(line)
+            }
+        }
+
+        val weightedRelatives = weightedLinesIncludingSplits.map {
             WeightedLineRelativeToFirst(
                 startTimeRelativeToGroupInSeconds = Duration.between(
                     startTimeGraph,

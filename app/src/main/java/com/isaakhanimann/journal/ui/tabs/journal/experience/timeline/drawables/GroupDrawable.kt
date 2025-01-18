@@ -78,34 +78,25 @@ class GroupDrawable(
         val weightedLinesForPointIngestions = weightedLines.filter { it.endTime == null }
         this.timeRangeDrawables = timeRangeDrawables
 
-        if (weightedLinesForPointIngestions.isNotEmpty()) {
+        if (weightedLines.isNotEmpty()) {
             val fulls = roaDuration?.toFullTimelines(
-                weightedLines = weightedLinesForPointIngestions,
+                weightedLines = weightedLines,
                 startTimeGraph = startTimeGraph,
             )
-            timelineDrawables = if (fulls != null) {
-                listOf(fulls)
-            } else {
-                val onsetComeupPeakTotals = weightedLinesForPointIngestions.mapNotNull {
-                    roaDuration?.toOnsetComeupPeakTotalTimeline(
-                        peakAndTotalWeight = it.horizontalWeight,
-                        ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(it.startTime),
-                        nonNormalisedHeight = it.height,
-                    )
-                }
-                onsetComeupPeakTotals.ifEmpty {
-                    val onsetComeupTotals = weightedLinesForPointIngestions.mapNotNull {
-                        roaDuration?.toOnsetComeupTotalTimeline(
-                            totalWeight = it.horizontalWeight,
-                            ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(
-                                it.startTime
-                            ),
+            if (weightedLinesForPointIngestions.isNotEmpty()) {
+                timelineDrawables = if (fulls != null) {
+                    listOf(fulls)
+                } else {
+                    val onsetComeupPeakTotals = weightedLinesForPointIngestions.mapNotNull {
+                        roaDuration?.toOnsetComeupPeakTotalTimeline(
+                            peakAndTotalWeight = it.horizontalWeight,
+                            ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(it.startTime),
                             nonNormalisedHeight = it.height,
                         )
                     }
-                    onsetComeupTotals.ifEmpty {
-                        val onsetTotals = weightedLinesForPointIngestions.mapNotNull {
-                            roaDuration?.toOnsetTotalTimeline(
+                    onsetComeupPeakTotals.ifEmpty {
+                        val onsetComeupTotals = weightedLinesForPointIngestions.mapNotNull {
+                            roaDuration?.toOnsetComeupTotalTimeline(
                                 totalWeight = it.horizontalWeight,
                                 ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(
                                     it.startTime
@@ -113,9 +104,9 @@ class GroupDrawable(
                                 nonNormalisedHeight = it.height,
                             )
                         }
-                        onsetTotals.ifEmpty {
-                            val totals = weightedLinesForPointIngestions.mapNotNull {
-                                roaDuration?.toTotalTimeline(
+                        onsetComeupTotals.ifEmpty {
+                            val onsetTotals = weightedLinesForPointIngestions.mapNotNull {
+                                roaDuration?.toOnsetTotalTimeline(
                                     totalWeight = it.horizontalWeight,
                                     ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(
                                         it.startTime
@@ -123,40 +114,51 @@ class GroupDrawable(
                                     nonNormalisedHeight = it.height,
                                 )
                             }
-                            totals.ifEmpty {
-                                val onsetComeupPeaks = weightedLinesForPointIngestions.mapNotNull {
-                                    roaDuration?.toOnsetComeupPeakTimeline(
-                                        peakWeight = it.horizontalWeight,
+                            onsetTotals.ifEmpty {
+                                val totals = weightedLinesForPointIngestions.mapNotNull {
+                                    roaDuration?.toTotalTimeline(
+                                        totalWeight = it.horizontalWeight,
                                         ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(
                                             it.startTime
                                         ),
                                         nonNormalisedHeight = it.height,
                                     )
                                 }
-                                onsetComeupPeaks.ifEmpty {
-                                    val onsetComeups = weightedLinesForPointIngestions.mapNotNull {
-                                        roaDuration?.toOnsetComeupTimeline(
+                                totals.ifEmpty {
+                                    val onsetComeupPeaks = weightedLinesForPointIngestions.mapNotNull {
+                                        roaDuration?.toOnsetComeupPeakTimeline(
+                                            peakWeight = it.horizontalWeight,
                                             ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(
                                                 it.startTime
                                             ),
                                             nonNormalisedHeight = it.height,
                                         )
                                     }
-                                    onsetComeups.ifEmpty {
-                                        val onsets = weightedLinesForPointIngestions.mapNotNull {
-                                            roaDuration?.toOnsetTimeline(
+                                    onsetComeupPeaks.ifEmpty {
+                                        val onsetComeups = weightedLinesForPointIngestions.mapNotNull {
+                                            roaDuration?.toOnsetComeupTimeline(
                                                 ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(
                                                     it.startTime
-                                                )
+                                                ),
+                                                nonNormalisedHeight = it.height,
                                             )
                                         }
-                                        onsets.ifEmpty {
-                                            weightedLinesForPointIngestions.map {
-                                                NoTimeline(
+                                        onsetComeups.ifEmpty {
+                                            val onsets = weightedLinesForPointIngestions.mapNotNull {
+                                                roaDuration?.toOnsetTimeline(
                                                     ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(
                                                         it.startTime
                                                     )
                                                 )
+                                            }
+                                            onsets.ifEmpty {
+                                                weightedLinesForPointIngestions.map {
+                                                    NoTimeline(
+                                                        ingestionTimeRelativeToStartInSeconds = getDistanceFromStartGraphInSeconds(
+                                                            it.startTime
+                                                        )
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -165,6 +167,8 @@ class GroupDrawable(
                         }
                     }
                 }
+            } else {
+                timelineDrawables = emptyList()
             }
         } else {
             timelineDrawables = emptyList()
