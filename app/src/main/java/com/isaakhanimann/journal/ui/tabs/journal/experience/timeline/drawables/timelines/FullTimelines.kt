@@ -24,8 +24,12 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.Density
 import com.isaakhanimann.journal.data.substances.classes.roa.RoaDuration
-import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.*
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.WeightedLine
 import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.drawables.TimelineDrawable
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.ingestionDotRadius
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.normalStroke
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.shapeAlpha
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.strokeWidth
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.max
@@ -86,13 +90,16 @@ data class FullTimelines(
     init {
         val weightedLinesIncludingSplits = weightedLines.flatMap { line ->
             if (line.endTime != null) {
-                val intervalInSeconds = Duration.between(line.startTime, line.endTime).seconds.toFloat()
-                val splitLengthInSeconds = max(min(comeup.minInSeconds/5, offset.minInSeconds/5), 10f)
-                val numSplits = max((intervalInSeconds/splitLengthInSeconds).roundToInt(), 3)
-                val splitHeight = line.height/numSplits
+                val intervalInSeconds =
+                    Duration.between(line.startTime, line.endTime).seconds.toFloat()
+                val splitLengthInSeconds =
+                    max(min(comeup.minInSeconds / 5, offset.minInSeconds / 5), 10f)
+                val numSplits = max((intervalInSeconds / splitLengthInSeconds).roundToInt(), 3)
+                val splitHeight = line.height / numSplits
                 if (numSplits > 1) {
                     val step = intervalInSeconds / (numSplits - 1)
-                    val splitStartTimes = List(numSplits) { i -> line.startTime.plusSeconds((i * step).toLong()) }
+                    val splitStartTimes =
+                        List(numSplits) { i -> line.startTime.plusSeconds((i * step).toLong()) }
                     splitStartTimes.map { splitStartTime ->
                         WeightedLine(
                             startTime = splitStartTime,
@@ -182,10 +189,45 @@ data class FullTimelines(
                 isIngestionPoint = finalPoint.isIngestionPoint
             )
         }
-        val sortedPoints = pointsWithHeight.sortedBy { it.x }
+        val sortedPoints = filterPoints(points = pointsWithHeight.sortedBy { it.x })
         this.finalPoints = sortedPoints
         this.nonNormalisedHeight = sortedPoints.maxOf { it.y }
         this.endOfLineRelativeToStartInSeconds = finalPoints.maxOf { it.x }
+    }
+
+    private fun filterPoints(points: List<FinalPoint>): List<FinalPoint> {
+        val minDistanceInSeconds = 10f
+        if (points.isEmpty()) return emptyList()
+
+        val filteredPoints = mutableListOf<FinalPoint>()
+        filteredPoints.add(points.first())
+        var lastAddedPoint: FinalPoint = points.first()
+
+        for (i in 1..<points.size) {
+            val currentPoint = points[i]
+
+            // Check for consecutive subsequences with the same y
+            if (i < points.size - 1) {
+                val prevPoint = points[i - 1]
+                val nextPoint = points[i + 1]
+
+                if (prevPoint.y == currentPoint.y && nextPoint.y == currentPoint.y) {
+                    continue
+                }
+            }
+
+            if (currentPoint.x - lastAddedPoint.x >= minDistanceInSeconds) {
+                filteredPoints.add(currentPoint)
+                lastAddedPoint = currentPoint
+            }
+        }
+
+        // Ensure to include the last point of the list
+        if (!filteredPoints.contains(points.last())) {
+            filteredPoints.add(points.last())
+        }
+
+        return filteredPoints
     }
 
     override fun drawTimeLine(
@@ -217,7 +259,10 @@ data class FullTimelines(
             color = color,
             style = density.normalStroke
         )
-        path.lineTo(x = finalPointsNormalised.last().x * pixelsPerSec, y = canvasHeight + drawScope.strokeWidth / 2)
+        path.lineTo(
+            x = finalPointsNormalised.last().x * pixelsPerSec,
+            y = canvasHeight + drawScope.strokeWidth / 2
+        )
         path.lineTo(
             x = finalPointsNormalised.first().x * pixelsPerSec,
             y = canvasHeight + drawScope.strokeWidth / 2
@@ -232,7 +277,10 @@ data class FullTimelines(
                 drawScope.drawCircle(
                     color = color,
                     radius = density.ingestionDotRadius,
-                    center = Offset(x = point.x * pixelsPerSec, y = canvasHeight - point.y * canvasHeight)
+                    center = Offset(
+                        x = point.x * pixelsPerSec,
+                        y = canvasHeight - point.y * canvasHeight
+                    )
                 )
             }
         }
