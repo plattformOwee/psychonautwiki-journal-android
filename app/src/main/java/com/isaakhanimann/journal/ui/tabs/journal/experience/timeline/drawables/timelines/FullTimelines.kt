@@ -104,30 +104,36 @@ data class FullTimelines(
                 it.startTime,
                 it.endTime
             ).seconds.toFloat()
-            val doesPeakFitInRange = peakInSeconds > rangeInSeconds
-            if (doesPeakFitInRange) {
+            if (peakInSeconds > rangeInSeconds) {
                 // use a few smaller split ingestions
                 if (peakInSeconds < 0.5f) {
                     return@flatMap emptyList() // prevent division by 0
                 }
-                val numberOfSplitIngestions = max(min(ceil(rangeInSeconds / peakInSeconds).toInt(), 5), 2)
-                val rangeStep = rangeInSeconds/(numberOfSplitIngestions-1)
-                val splitHeight = it.height/numberOfSplitIngestions
+                val numberOfSplitIngestions =
+                    max(min(ceil(rangeInSeconds / peakInSeconds).toInt(), 5), 2)
+                val rangeStep = rangeInSeconds / (numberOfSplitIngestions - 1)
+                val splitHeight = it.height / numberOfSplitIngestions
                 val segments = (0..<numberOfSplitIngestions).flatMap { index ->
-                    val startXOfSplit = startX + index*rangeStep
+                    val startXOfSplit = startX + index * rangeStep
                     getLineSegments(startX = startXOfSplit, height = splitHeight)
                 }
                 return@flatMap segments
             } else {
                 // approximate line
-                val height = if (rangeInSeconds > 1f) { // prevent division by 0
-                    min(
-                        it.height,
-                        it.height * (((comeupInSeconds + offsetInSeconds) / 2f) + peakInSeconds) / rangeInSeconds
-                    )
-                } else {
-                    it.height
+                val peakPlusHalfComeupOffset =
+                    ((comeupInSeconds + offsetInSeconds) / 2f) + peakInSeconds
+                if (rangeInSeconds < 1f) { // prevent division by 0
+                    return@flatMap emptyList()
                 }
+                val heightRatio = if (peakPlusHalfComeupOffset < rangeInSeconds) {
+                    peakInSeconds / (peakInSeconds + rangeInSeconds)
+                } else {
+                    peakPlusHalfComeupOffset / rangeInSeconds
+                }
+                val height = min(
+                    it.height,
+                    it.height * heightRatio
+                )
                 return@flatMap listOf(
                     LineSegment(
                         start = Point(x = comeupStartX, 0f),
