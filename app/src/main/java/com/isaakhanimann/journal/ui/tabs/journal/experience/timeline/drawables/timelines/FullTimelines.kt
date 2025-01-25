@@ -112,7 +112,7 @@ data class FullTimelines(
             if (peakInSeconds < 0.1f) {
                 return@flatMap emptyList() // prevent division by 0
             }
-            val numberOfSplitIngestions = max(ceil(rangeInSeconds / peakInSeconds).toInt(), 2)
+            val numberOfSplitIngestions = max(ceil(rangeInSeconds * 2 / peakInSeconds).toInt(), 2)
 
             if (numberOfSplitIngestions <= 5) {
                 // use a few smaller split ingestions
