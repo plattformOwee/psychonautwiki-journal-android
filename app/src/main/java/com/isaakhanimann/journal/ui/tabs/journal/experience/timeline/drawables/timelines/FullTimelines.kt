@@ -24,8 +24,12 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.Density
 import com.isaakhanimann.journal.data.substances.classes.roa.RoaDuration
-import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.*
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.WeightedLine
 import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.drawables.TimelineDrawable
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.ingestionDotRadius
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.normalStroke
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.shapeAlpha
+import com.isaakhanimann.journal.ui.tabs.journal.experience.timeline.strokeWidth
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.ceil
@@ -104,13 +108,14 @@ data class FullTimelines(
                 it.startTime,
                 it.endTime
             ).seconds.toFloat()
-            val doesPeakFitInRange = peakInSeconds > rangeInSeconds
-            if (doesPeakFitInRange) {
+
+            if (peakInSeconds < 0.1f) {
+                return@flatMap emptyList() // prevent division by 0
+            }
+            val numberOfSplitIngestions = max(ceil(rangeInSeconds / peakInSeconds).toInt(), 2)
+
+            if (numberOfSplitIngestions <= 5) {
                 // use a few smaller split ingestions
-                if (peakInSeconds < 0.5f) {
-                    return@flatMap emptyList() // prevent division by 0
-                }
-                val numberOfSplitIngestions = max(min(ceil(rangeInSeconds / peakInSeconds).toInt(), 5), 2)
                 val rangeStep = rangeInSeconds/(numberOfSplitIngestions-1)
                 val splitHeight = it.height/numberOfSplitIngestions
                 val segments = (0..<numberOfSplitIngestions).flatMap { index ->
