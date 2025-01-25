@@ -97,13 +97,9 @@ data class FullTimelines(
             val endX =
                 Duration.between(startTimeGraph, it.endTime).seconds.toFloat()
             val onsetInSeconds = onset.interpolateAtValueInSeconds(0.5f)
-            val comeupStartX = startX + onsetInSeconds
             val comeupInSeconds = comeup.interpolateAtValueInSeconds(0.5f)
-            val peakStartX = comeupStartX + comeupInSeconds
             val peakInSeconds = peak.interpolateAtValueInSeconds(0.5f)
-            val peakEndX = endX + onsetInSeconds + comeupInSeconds + peakInSeconds
             val offsetInSeconds = offset.interpolateAtValueInSeconds(0.5f)
-            val offsetEndX = peakEndX + offsetInSeconds
             val rangeInSeconds = Duration.between(
                 it.startTime,
                 it.endTime
@@ -133,6 +129,11 @@ data class FullTimelines(
                 } else {
                     it.height
                 }
+                val comeupStartX = startX + onsetInSeconds
+                val peakStartX = comeupStartX + comeupInSeconds
+                val peakEndX = endX + onsetInSeconds + comeupInSeconds + peakInSeconds
+                val offsetEndX = peakEndX + offsetInSeconds
+
                 return@flatMap listOf(
                     LineSegment(
                         start = Point(x = comeupStartX, 0f),
