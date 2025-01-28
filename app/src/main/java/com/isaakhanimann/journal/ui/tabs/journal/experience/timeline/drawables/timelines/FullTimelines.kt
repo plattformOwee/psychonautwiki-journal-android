@@ -103,13 +103,13 @@ data class FullTimelines(
             val offsetInSeconds = offset.interpolateAtValueInSeconds(0.5f)
 
             val points = getSamplePoints(
-                xStart = startX.toDouble(),
-                xEnd = endX.toDouble(),
-                hMax = it.height.toDouble(),
-                onset = onsetInSeconds.toDouble(),
-                comeup = comeupInSeconds.toDouble(),
-                peak = peakInSeconds.toDouble(),
-                offset = offsetInSeconds.toDouble()
+                xStart = startX,
+                xEnd = endX,
+                hMax = it.height,
+                onset = onsetInSeconds,
+                comeup = comeupInSeconds,
+                peak = peakInSeconds,
+                offset = offsetInSeconds
             )
             val lineSegments = getLineSegments(points)
 
@@ -215,13 +215,13 @@ data class FullTimelines(
         }
 
         fun getSamplePoints(
-            xStart: Double,
-            xEnd: Double,
-            hMax: Double,
-            onset: Double,
-            peak: Double,
-            comeup: Double,
-            offset: Double,
+            xStart: Float,
+            xEnd: Float,
+            hMax: Float,
+            onset: Float,
+            peak: Float,
+            comeup: Float,
+            offset: Float,
         ): List<Point> {
             val numberOfSteps = 20
             val startSampleRange = xStart + onset
@@ -240,24 +240,24 @@ data class FullTimelines(
                     comeup = comeup,
                     offset = offset
                 )
-                return@map Point(x = t.toFloat(), y = height.toFloat())
+                return@map Point(x = t, y = height)
             }
-            val firstPoint = Point(x = startSampleRange.toFloat(), y = 0f)
-            val lastPoint = Point(x = endSampleRange.toFloat(), y = 0f)
+            val firstPoint = Point(x = startSampleRange, y = 0f)
+            val lastPoint = Point(x = endSampleRange, y = 0f)
 
             return listOf(firstPoint) + points + listOf(lastPoint)
         }
 
         private fun calculateExpression(
-            t: Double,
-            xStart: Double,
-            xEnd: Double,
-            hMax: Double,
-            onset: Double,
-            peak: Double,
-            comeup: Double,
-            offset: Double,
-        ): Double {
+            t: Float,
+            xStart: Float,
+            xEnd: Float,
+            hMax: Float,
+            onset: Float,
+            peak: Float,
+            comeup: Float,
+            offset: Float,
+        ): Float {
             val term1 = comeup * offset * (
                     min(xEnd, max(xStart, -comeup - onset + t)) -
                             min(xEnd, max(xStart, -comeup - onset - peak + t))
@@ -268,7 +268,7 @@ data class FullTimelines(
                             min(xEnd, max(xStart, -comeup - offset - onset - peak + t))
                     ) * (comeup + offset + onset + peak - t)
 
-            val term3 = 0.5 * comeup * (
+            val term3 = 0.5f * comeup * (
                     min(xEnd, max(xStart, -comeup - onset - peak + t)).pow(2) -
                             min(xEnd, max(xStart, -comeup - offset - onset - peak + t)).pow(2)
                     )
@@ -278,7 +278,7 @@ data class FullTimelines(
                             min(xEnd, max(xStart, -comeup - onset + t))
                     )
 
-            val term5 = 0.5 * offset * (
+            val term5 = 0.5f * offset * (
                     -min(xEnd, max(xStart, -onset + t)).pow(2) +
                             min(xEnd, max(xStart, -comeup - onset + t)).pow(2)
                     )
