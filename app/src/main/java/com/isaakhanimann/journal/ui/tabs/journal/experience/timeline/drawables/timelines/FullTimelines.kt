@@ -229,7 +229,7 @@ data class FullTimelines(
             val stepSize = (endSampleRange - startSampleRange) / numberOfSteps
 
             val points = (1..<numberOfSteps).map { step ->
-                val t = step * stepSize
+                val t = startSampleRange + step * stepSize
                 val height = calculateExpression(
                     t = t,
                     xStart = xStart,
