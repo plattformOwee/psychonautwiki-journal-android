@@ -89,31 +89,7 @@ data class FullTimelines(
 
     init {
         val timeRangeLineSegments = weightedLines.flatMap {
-            if (it.endTime == null) {
-                return@flatMap emptyList<LineSegment>()
-            }
-
-            val startX =
-                Duration.between(startTimeGraph, it.startTime).seconds.toFloat()
-            val endX =
-                Duration.between(startTimeGraph, it.endTime).seconds.toFloat()
-            val onsetInSeconds = onset.interpolateAtValueInSeconds(0.5f)
-            val comeupInSeconds = comeup.interpolateAtValueInSeconds(0.5f)
-            val peakInSeconds = peak.interpolateAtValueInSeconds(0.5f)
-            val offsetInSeconds = offset.interpolateAtValueInSeconds(0.5f)
-
-            val points = getSamplePoints(
-                xStart = startX,
-                xEnd = endX,
-                hMax = it.height,
-                onset = onsetInSeconds,
-                comeup = comeupInSeconds,
-                peak = peakInSeconds,
-                offset = offsetInSeconds
-            )
-            val lineSegments = getLineSegments(points)
-
-            return@flatMap lineSegments
+            return@flatMap getLineSegments(weightedLine = it)
         }
         val weightedRelatives = weightedLines.filter { it.endTime == null }.map {
             WeightedLineRelativeToFirst(
@@ -194,6 +170,33 @@ data class FullTimelines(
         this.endOfLineRelativeToStartInSeconds = finalPoints.maxOf { it.x }
     }
 
+    private fun getLineSegments(weightedLine: WeightedLine): List<LineSegment> {
+        if (weightedLine.endTime == null) {
+            return emptyList()
+        }
+        val startX =
+            Duration.between(startTimeGraph, weightedLine.startTime).seconds.toFloat()
+        val endX =
+            Duration.between(startTimeGraph, weightedLine.endTime).seconds.toFloat()
+        val onsetInSeconds = onset.interpolateAtValueInSeconds(0.5f)
+        val comeupInSeconds = comeup.interpolateAtValueInSeconds(0.5f)
+        val peakInSeconds = peak.interpolateAtValueInSeconds(0.5f)
+        val offsetInSeconds = offset.interpolateAtValueInSeconds(0.5f)
+
+        val points = getSamplePoints(
+            startX = startX,
+            endX = endX,
+            hMax = weightedLine.height,
+            onset = onsetInSeconds,
+            comeup = comeupInSeconds,
+            peak = peakInSeconds,
+            offset = offsetInSeconds
+        )
+        val lineSegments = getLineSegments(points)
+
+        return lineSegments
+    }
+
     companion object {
 
         fun getLineSegments(points: List<Point>): List<LineSegment> {
@@ -215,8 +218,8 @@ data class FullTimelines(
         }
 
         fun getSamplePoints(
-            xStart: Float,
-            xEnd: Float,
+            startX: Float,
+            endX: Float,
             hMax: Float,
             onset: Float,
             peak: Float,
@@ -224,23 +227,23 @@ data class FullTimelines(
             offset: Float,
         ): List<Point> {
             val numberOfSteps = 20
-            val startSampleRange = xStart + onset
-            val endSampleRange = xEnd + onset + comeup + peak + offset
+            val startSampleRange = startX + onset
+            val endSampleRange = endX + onset + comeup + peak + offset
             val stepSize = (endSampleRange - startSampleRange) / numberOfSteps
 
             val points = (1..<numberOfSteps).map { step ->
-                val t = startSampleRange + step * stepSize
+                val x = startSampleRange + step * stepSize
                 val height = calculateExpression(
-                    t = t,
-                    xStart = xStart,
-                    xEnd = xEnd,
+                    x = x,
+                    startX = startX,
+                    endX = endX,
                     hMax = hMax,
                     onset = onset,
                     peak = peak,
                     comeup = comeup,
                     offset = offset
                 )
-                return@map Point(x = t, y = height)
+                return@map Point(x = x, y = height)
             }
             val firstPoint = Point(x = startSampleRange, y = 0f)
             val lastPoint = Point(x = endSampleRange, y = 0f)
@@ -249,9 +252,9 @@ data class FullTimelines(
         }
 
         private fun calculateExpression(
-            t: Float,
-            xStart: Float,
-            xEnd: Float,
+            x: Float,
+            startX: Float,
+            endX: Float,
             hMax: Float,
             onset: Float,
             peak: Float,
@@ -259,32 +262,32 @@ data class FullTimelines(
             offset: Float,
         ): Float {
             val term1 = comeup * offset * (
-                    min(xEnd, max(xStart, -comeup - onset + t)) -
-                            min(xEnd, max(xStart, -comeup - onset - peak + t))
+                    min(endX, max(startX, -comeup - onset + x)) -
+                            min(endX, max(startX, -comeup - onset - peak + x))
                     )
 
             val term2 = comeup * (
-                    min(xEnd, max(xStart, -comeup - onset - peak + t)) -
-                            min(xEnd, max(xStart, -comeup - offset - onset - peak + t))
-                    ) * (comeup + offset + onset + peak - t)
+                    min(endX, max(startX, -comeup - onset - peak + x)) -
+                            min(endX, max(startX, -comeup - offset - onset - peak + x))
+                    ) * (comeup + offset + onset + peak - x)
 
             val term3 = 0.5f * comeup * (
-                    min(xEnd, max(xStart, -comeup - onset - peak + t)).pow(2) -
-                            min(xEnd, max(xStart, -comeup - offset - onset - peak + t)).pow(2)
+                    min(endX, max(startX, -comeup - onset - peak + x)).pow(2) -
+                            min(endX, max(startX, -comeup - offset - onset - peak + x)).pow(2)
                     )
 
-            val term4 = offset * (onset - t) * (
-                    -min(xEnd, max(xStart, -onset + t)) +
-                            min(xEnd, max(xStart, -comeup - onset + t))
+            val term4 = offset * (onset - x) * (
+                    -min(endX, max(startX, -onset + x)) +
+                            min(endX, max(startX, -comeup - onset + x))
                     )
 
             val term5 = 0.5f * offset * (
-                    -min(xEnd, max(xStart, -onset + t)).pow(2) +
-                            min(xEnd, max(xStart, -comeup - onset + t)).pow(2)
+                    -min(endX, max(startX, -onset + x)).pow(2) +
+                            min(endX, max(startX, -comeup - onset + x)).pow(2)
                     )
 
             val numerator = hMax.pow(2) * (term1 + term2 + term3 + term4 + term5)
-            val denominator = comeup * offset * (xEnd - xStart)
+            val denominator = comeup * offset * (endX - startX)
 
             return numerator / denominator
         }
