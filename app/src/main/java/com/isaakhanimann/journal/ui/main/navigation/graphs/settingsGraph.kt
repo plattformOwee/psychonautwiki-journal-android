@@ -54,6 +54,9 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
                 navigateToDonate = {
                     navController.navigate(DonateRoute)
                 },
+                navigateToBackupSettings = {
+                    navController.navigate(BackupSettingsRoute) // Add this line
+                },
             )
         }
         composableWithTransitions<FAQRoute> { FAQScreen() }
@@ -82,6 +85,7 @@ fun NavGraphBuilder.settingsGraph(navController: NavHostController) {
         composableWithTransitions<EditCustomUnitRoute> {
             EditCustomUnitScreen(navigateBack = navController::popBackStack)
         }
+        composableWithTransitions<BackupSettingsRoute> { BackupSettingsScreen() } // Add this line
     }
 }
 

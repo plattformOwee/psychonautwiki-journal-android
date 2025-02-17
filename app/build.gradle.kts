@@ -90,6 +90,10 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
 
+    implementation("androidx.work:work-runtime-ktx:2.7.1") 
+    implementation("commons-net:commons-net:3.8.0")
+    implementation("com.jcraft:jsch:0.1.55")
+
 }
 
 kapt {

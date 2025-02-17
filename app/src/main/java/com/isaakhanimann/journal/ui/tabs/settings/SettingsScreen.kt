@@ -104,6 +104,7 @@ fun SettingsPreview() {
         saveIsTimelineHidden = {},
         areSubstanceHeightsIndependent = false,
         saveAreSubstanceHeightsIndependent = {},
+        navigateToBackupSettings = {}, // Add this line
     )
 }
 
@@ -115,6 +116,7 @@ fun SettingsScreen(
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
     navigateToDonate: () -> Unit,
+    navigateToBackupSettings: () -> Unit, // Add this line
 ) {
     SettingsScreen(
         navigateToFAQ = navigateToFAQ,
@@ -122,6 +124,7 @@ fun SettingsScreen(
         navigateToSubstanceColors = navigateToSubstanceColors,
         navigateToCustomUnits = navigateToCustomUnits,
         navigateToDonate = navigateToDonate,
+        navigateToBackupSettings = navigateToBackupSettings, // Add this line
         deleteEverything = viewModel::deleteEverything,
         importFile = viewModel::importFile,
         exportFile = viewModel::exportFile,
@@ -143,6 +146,7 @@ fun SettingsScreen(
     navigateToSubstanceColors: () -> Unit,
     navigateToCustomUnits: () -> Unit,
     navigateToDonate: () -> Unit,
+    navigateToBackupSettings: () -> Unit, // Add this line
     deleteEverything: () -> Unit,
     importFile: (uri: Uri) -> Unit,
     exportFile: (uri: Uri) -> Unit,
@@ -397,6 +401,11 @@ fun SettingsScreen(
                             }
                         }
                     )
+                }
+            }
+            CardWithTitle(title = "Backup Settings", innerPaddingHorizontal = 0.dp) {
+                SettingsButton(imageVector = Icons.Outlined.CloudUpload, text = "Configure Backup") {
+                    navigateToBackupSettings()
                 }
             }
             val uriHandler = LocalUriHandler.current

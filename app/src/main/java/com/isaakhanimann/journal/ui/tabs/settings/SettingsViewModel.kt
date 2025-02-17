@@ -102,6 +102,101 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+        fun exportFile(uri: Uri) {
+        viewModelScope.launch {
+            val experiencesWithIngestionsAndRatings =
+                experienceRepository.getAllExperiencesWithIngestionsTimedNotesAndRatingsSorted()
+            val experiencesSerializable = experiencesWithIngestionsAndRatings.map {
+                val location = it.experience.location
+                return@map ExperienceSerializable(
+                    title = it.experience.title,
+                    text = it.experience.text,
+                    creationDate = it.experience.creationDate,
+                    sortDate = it.experience.sortDate,
+                    isFavorite = it.experience.isFavorite,
+                    ingestions = it.ingestions.map { ingestion ->
+                        IngestionSerializable(
+                            substanceName = ingestion.substanceName,
+                            time = ingestion.time,
+                            endTime = ingestion.endTime,
+                            creationDate = ingestion.creationDate,
+                            administrationRoute = ingestion.administrationRoute,
+                            dose = ingestion.dose,
+                            estimatedDoseStandardDeviation = ingestion.estimatedDoseStandardDeviation,
+                            isDoseAnEstimate = ingestion.isDoseAnEstimate,
+                            units = ingestion.units,
+                            notes = ingestion.notes,
+                            stomachFullness = ingestion.stomachFullness,
+                            consumerName = ingestion.consumerName,
+                            customUnitId = ingestion.customUnitId
+                        )
+                    },
+                    location = if (location != null) {
+                        LocationSerializable(
+                            name = location.name,
+                            latitude = location.latitude,
+                            longitude = location.longitude
+                        )
+                    } else {
+                        null
+                    },
+                    ratings = it.ratings.map { rating ->
+                        RatingSerializable(
+                            option = rating.option,
+                            time = rating.time,
+                            creationDate = rating.creationDate
+                        )
+                    },
+                    timedNotes = it.timedNotes.map { timedNote ->
+                        TimedNoteSerializable(
+                            creationDate = timedNote.creationDate,
+                            time = timedNote.time,
+                            note = timedNote.note,
+                            color = timedNote.color,
+                            isPartOfTimeline = timedNote.isPartOfTimeline
+                        )
+                    }
+                )
+            }
+            val customUnitsSerializable = experienceRepository.getAllCustomUnitsSorted().map {
+                CustomUnitSerializable(
+                    id = it.id,
+                    substanceName = it.substanceName,
+                    name = it.name,
+                    creationDate = it.creationDate,
+                    administrationRoute = it.administrationRoute,
+                    dose = it.dose,
+                    estimatedDoseStandardDeviation = it.estimatedDoseStandardDeviation,
+                    isEstimate = it.isEstimate,
+                    isArchived = it.isArchived,
+                    unit = it.unit,
+                    unitPlural = it.unitPlural,
+                    originalUnit = it.originalUnit,
+                    note = it.note
+                )
+            }
+            val journalExport = JournalExport(
+                experiences = experiencesSerializable,
+                substanceCompanions = experienceRepository.getAllSubstanceCompanions(),
+                customSubstances = experienceRepository.getAllCustomSubstances(),
+                customUnits = customUnitsSerializable
+            )
+            try {
+                val jsonList = Json.encodeToString(journalExport)
+                fileSystemConnection.saveTextInUri(uri, text = jsonList)
+                snackbarHostState.showSnackbar(
+                    message = "Export successful",
+                    duration = SnackbarDuration.Short
+                )
+            } catch (_: Exception) {
+                snackbarHostState.showSnackbar(
+                    message = "Export failed",
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
+
     fun exportFile(uri: Uri) {
         viewModelScope.launch {
             val experiencesWithIngestionsAndRatings =
